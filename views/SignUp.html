@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'rel='stylesheet'>
+    <style> body {
+        background-image: url(https://media.99images.com/photos/wallpapers/creative-graphics/pastel-green%20android-iphone-desktop-hd-backgrounds-wallpapers-1080p-4k-9gjbe.jpg);
+    }
+form {
+    text-align: center;
+    background-size: 0cm;
+}
+i{
+    position:relative;
+    left: 18px;
+    top: 2px;
+    color: rgb(10, 10, 10);
+}
+    </style>
+    <title>SignUp</title>
+</head>
+<body>
+    <form id="SignUp" onsubmit="signUp(event)" action="/" method="POST">
+        <h1 style="color:rgb(251, 252, 251)">Signup</h1>
+        <i class='bx bx-user'></i>
+        <input style="position: relative; ;right: 11px ;width: 250px; height: 35px;padding-left: 30px ;background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px; outline: none" type="text" id="name" required Name="Name" placeholder="Username"><br><br>
+        <i class='bx bx-mail-send'></i>
+        <input style="position: relative; ;right: 11px ;width: 250px; height: 35px; padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px; outline: none" type="email" id="email" Name="emailId" placeholder="Email address" required><br><br>
+        <i class='bx bx-lock-alt'></i>
+        <input style="position: relative; ;right: 11px ;width: 250px; height: 35px;padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px; outline: none" type="password" id="password" Name="Password" placeholder="Password" required><br><br>
+        <button style="width: 250px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;" type="submit">Sign Up</button><br>
+        Already a user? <a style="color: rgb(253, 252, 252); font-style: italic;" href="/login.html">Login</a>
+
+    </form>
+   
+
+    <ul id="listOfUsers"></ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js"></script>
+    <script>
+        function signUp(event){
+            event.preventDefault(event);
+            const username = event.target.Name.value;
+            const email = event.target.emailId.value;
+            const password = event.target.Password.value
+
+            const obj = {
+                username,
+                email,
+                password
+            }
+
+            axios.post('http://54.249.187.183:3000/users/signup' , obj)
+            .then((response)=>{
+                console.log(response)
+                document.body.innerHTML += `<div style='color:green;'>${alert('Successfully signed up!')}</div>`
+                window.location.href = 'http://54.249.187.183:3000/login.html'
+            })
+            .catch((err)=>{
+                console.log(err)
+                document.body.innerHTML += `<div style='color:red;'>${'Email already exist! Please try to login!'}</div>`
+            })
+
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'rel='stylesheet'>
+    <style> body {
+        background-image: url(https://media.99images.com/photos/wallpapers/creative-graphics/pastel-green%20android-iphone-desktop-hd-backgrounds-wallpapers-1080p-4k-9gjbe.jpg);
+    }
+form {
+    text-align: center;
+    background-size: 0cm;
+}
+i{
+    position:relative;
+    left: 18px;
+    top: 2px;
+    color: rgb(10, 10, 10);
+}
+    </style>
+    <title>Login</title>
+</head>
+<body>
+    <form id="SignUp" onsubmit="login(event)" action="/" method="POST">
+        <h1 style="color:rgb(251, 252, 251)">Login</h1><br>
+        <i class='bx bx-mail-send'></i>
+        <input style="position: relative; ;right: 11px ;width: 250px; height: 35px;padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px;outline: none" type="text" name="emailId" id="email" placeholder="Email address"><br><br>
+        <i class='bx bx-lock-alt'></i>
+        <input style="position: relative; ;right: 11px ;width: 250px; height: 35px;padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px;outline: none" type="password" id="password" Name="Password" placeholder="Password" required><br><br>
+        <button style="width: 250px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;" type="submit">Log In</button><br>
+        <a  style="color: rgb(253, 252, 252); font-style: italic;" href="/forgotPassword.html">Forgot Password?</a><br>
+        Not a member?<a style="color:rgb(251, 247, 247); font-style: italic;" href="/Signup.html"> Signup</a>
+    </form>
+
+    <div id="existing"></div>
+
+    <ul id="listOfUsers"></ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js"></script>
+    <script>
+        function login(event){
+            event.preventDefault(event);
+            const email = event.target.emailId.value;
+            const password = event.target.Password.value
+
+            const obj = {
+                email,
+                password
+            }
+
+            axios.post('http://54.249.187.183:3000/users/login' , obj)
+            .then((response)=>{
+                console.log(response)
+                
+                if(response.status === 201){
+                     console.log('login complete')
+                     alert('Log in successful!')
+                     localStorage.setItem('token', response.data.token)
+                     window.location.href = 'http://54.249.187.183:3000/Expense.html'
+                }
+                else if(response.status === 400){
+                    document.body.innerHTML += `<div style='color:red'>Wrong Password</div>`
+                }
+               
+                else if(response.status === 207){
+                    document.body.innerHTML += `<div style='color:red'>User not found</div>`
+                }
+               
+                
+                else{
+                    throw new error('Failed to log in!')
+                    
+                }
+            })
+            .catch((err)=>{
+                
+                console.log(JSON.stringify(err))
+                document.body.innerHTML += `<div style='color:red;'>${'Wrong password'}</div>`
+            })
+
+
+          
+        }
+    </script>
+</body>
+</html>

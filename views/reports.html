@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'rel='stylesheet'>
+    <style> body {
+        background-image: url(https://media.99images.com/photos/wallpapers/creative-graphics/pastel-green%20android-iphone-desktop-hd-backgrounds-wallpapers-1080p-4k-9gjbe.jpg);
+    }
+form {
+    text-align: center;
+    background-size: 0cm;
+}
+i{
+    position:relative;
+    left: 18px;
+    top: 2px;
+    color: rgb(10, 10, 10);
+}
+input.hover{
+    background-color: red;
+}
+</style>
+    <title>Download Expenses</title>
+</head>
+<body>
+    <form>
+    <h1 style="color:rgb(251, 252, 251)">Your Reports!</h1>
+    <button style="width: 250px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;" id="downloadReports">Download new report</button><br><br>
+</form>
+<button onclick = "download_List()" id="AllDownloads" style="width: 250px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;position: absolute;right: 13.6cm">Download history</button><br><br>
+<a style="color: rgb(253, 252, 252); font-style:oblique;" href="./Expense.html">HOME PAGE</a>
+<div style="text-align: center;">
+    <form onsubmit="perPage(event)" id="perpage">
+        <input type="text" style="visibility: hidden;">
+    </form>
+</div>
+<div id="message"></div>
+<ul id ='downloadedURL'></ul>
+
+<script  src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.2/axios.min.js"></script>
+<script>
+const token = localStorage.getItem('token')
+const download = document.getElementById('downloadReports')
+const Items_Per_Page = document.getElementById('perpage')
+let page = 1
+
+window.addEventListener("DOMContentLoaded", async(event) => {
+            const token = localStorage.getItem('token');
+            const decodeToken = parseJwt(token)
+            const ispremiumuser = decodeToken.ispremiumuser
+            if(ispremiumuser){
+        premiumUserMsg()
+        download_List()
+
+    }
+    if(!ispremiumuser){
+        var bt1=document.getElementById('downloadReports')
+        bt1.onclick = function (){
+        alert('please upgrade to premium to access this feature!')
+    }
+    var bt2=document.getElementById('AllDownloads')
+        bt2.onclick = function (){
+        alert('please upgrade to premium to access this feature!')
+    }
+    }
+           await axios.post(`http://54.249.187.183:3000/users/get-user/${page}`,{Items_Per_Page: Items_Per_Page}, {headers: {'Authorization': token}})
+            .then((response)=>{
+                console.log(response.data)
+
+            })
+            .catch((err)=>{
+                console.log(err)
+            })
+           
+            
+        })
+
+        function premiumUserMsg(event){
+        document.getElementById('message').innerHTML = "<p style='text-align:center; color:red'><strong>PREMIUM USER</strong></p>"
+
+        }
+
+download.addEventListener('click', async(event)=>{
+event.preventDefault();
+
+try{
+
+await axios.get('http://54.249.187.183:3000/users/download', {headers: {'Authorization': token}})
+.then((response)=>{
+    if(response.status === 201){
+        console.log(response.data);
+        var a = document.createElement("a");
+        a.href = response.data.fileUrl;
+        a.download = 'expenses.csv';
+        a.click();
+    }
+    if(response.status===207){
+        alert('please upgrade to premium to access this feature!')
+        
+        
+    }
+})
+.catch((err)=>{
+    console.log(err)
+})
+
+}
+catch(error){
+    console.log(error);
+    
+    
+}
+
+})
+
+function download_List(){
+    const token =localStorage.getItem('token')
+    var DownloadlistParentElement = document.getElementById('downloadedURL');
+    axios.get('http://54.249.187.183:3000/users/getAllUrl', {headers :{"Authorization": token}})
+    .then((response)=>{
+        if(response.status === 200){
+            console.log(response);
+            
+            DownloadlistParentElement.innerHTML = `<h1>Download History</h1>`
+            for(i=0;i<response.data.data.length;i++){
+                DownloadListDisplay(response.data.data[i])
+            
+            
+            
+        }
+    }
+        function DownloadListDisplay(downloadurl){
+        var DownloadlistParentElement = document.getElementById('downloadedURL');
+        childNode= `<l1 id= ${downloadurl.id}> <strong>FileName</strong>- ${downloadurl.filename}<br> <a href=${downloadurl.fileurl}>Click To Download File</a></li><br><br>`
+            DownloadlistParentElement.innerHTML =  DownloadlistParentElement.innerHTML+ childNode
+        }
+    }).catch(err =>{
+        console.log(err)
+    })
+
+}
+
+function parseJwt (token) {
+var base64Url = token.split('.')[1];
+var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+}).join(''));
+
+return JSON.parse(jsonPayload);
+}
+      
+</script>
+</body>
+</html>

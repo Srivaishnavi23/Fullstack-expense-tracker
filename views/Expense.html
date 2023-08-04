@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Expenses</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'rel='stylesheet'>
+    <style> body {
+        background-image: url(https://media.99images.com/photos/wallpapers/creative-graphics/pastel-green%20android-iphone-desktop-hd-backgrounds-wallpapers-1080p-4k-9gjbe.jpg);
+    }
+form {
+    text-align: center;
+    background-size: 0cm;
+}
+i{
+    position:relative;
+    left: 18px;
+    top: 2px;
+    color: rgb(10, 10, 10);
+    
+}
+a:hover{
+    background-color: #9f2e06;
+}
+
+
+</style>
+</head>
+<body>
+   
+    <form onsubmit="ExpenseDetails(event)" action="/" method="POST">
+        <h1  style="color:rgb(251, 252, 251)">Expense Tracker</h1>
+        <i class='bx bx-dollar'></i>
+        <input style="position: relative; right: 11px ;width: 250px; height: 35px;padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px;outline: none" id="num" type="number" Name="number" placeholder="Amount spent" required /><br><br>
+        <i class='bx bx-list-check'></i>
+        <input style="position: relative; right: 11px ;width: 250px; height: 35px;padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px;outline: none" id="desc" type="text" Name="description" placeholder="Spent on" required /><br><br>
+        <select style="position: relative ;width: 280px; height: 35px;padding-left: 30px;  background: rgba(255, 255, 255, 0.231);border: none;border-radius: 40px;outline: none" id="categ" Name="categories">
+            <option  value="Travelling" >Travelling</option>
+            <option value="Food" >Food</option>
+            <option value="Shopping" >Shopping</option>
+            <option value="Clubbing" >Clubbing</option>
+            <option value="Gift" >Gift</option>
+        </select><br><br>
+        <button style="width: 250px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;">Add Expenses</button>
+    </form>
+    <div id="message"></div>
+    <div style="text-align: center;">
+        <form onsubmit="perPage(event)" id="perpage">
+            Expenses Details Per page: <input type="number" min="2" max="20" name="Items_Per_Page">
+            <button type="submit">submit</button>
+        </form>
+    </div>
+    <div style="position:relative;top: 7cm;text-align: center;"  id="pagination"></div></div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <button style="width: 100px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;" id="Report" onclick="getReport()">Reports</button>
+    <button style="width: 100px; height: 35px;  background: rgba(16, 16, 16, 0.463);border: none;border-radius: 40px;" id="Board" onclick="getLeaderBoard()">Leaderboard</button>
+    <button style="width: 100px; height: 35px;  background: rgba(186, 32, 32, 0.463);border: none;border-radius: 40px;" id="rzp-button1">Premium User</button>
+    
+
+    <ul id="NumberOfExpenses"></ul>
+
+    
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.2.1/axios.min.js"></script>
+    <script>
+        const pagination=document.getElementById('pagination')
+        let Items_Per_Page = +document.getElementById('perpage')
+        
+
+
+
+        function ExpenseDetails(event){
+            event.preventDefault(event);
+            const Number = event.target.number.value;
+            const Description = event.target.description.value;
+            const Categories = event.target.categories.value;
+            
+            
+           
+            const obj = {
+                Number,
+                Description,
+                Categories
+            }
+            const token = localStorage.getItem('token');
+            axios.post(`http://54.249.187.183:3000/users/add-user/`,obj,{headers: {'Authorization': token}})
+            .then((response)=>{
+                DisplayOnScreen(response.data.newExpenseDetails)
+                console.log(response)
+            })
+            .catch((err)=>{
+                console.log(err)
+            })
+           
+        }
+        window.addEventListener("DOMContentLoaded", async(event) => {
+            const page=1;
+            const token = localStorage.getItem('token');
+            const decodeToken = parseJwt(token)
+            console.log(decodeToken)
+            const ispremiumuser = decodeToken.ispremiumuser
+            if(ispremiumuser){
+                document.getElementById('rzp-button1').style.visibility = "hidden"
+            document.getElementById('message').innerHTML = "<p style='text-align:center; color:red'><strong>PREMIUM USER</strong></p>"
+            }
+           await axios.post(`http://54.249.187.183:3000/users/get-user/${page}`,{Items_Per_Page: Items_Per_Page}, {headers: {'Authorization': token}})
+            .then((response)=>{
+                console.log(response.data)
+                    response.data.data.forEach(data => {
+                        DisplayOnScreen(data)
+                    })
+                    showPagination(response.data.info) 
+ 
+            })
+            .catch((err)=>{
+                console.log(err)
+            })
+           
+            
+        })
+        function DisplayOnScreen(user){
+            const parentNode = document.getElementById("NumberOfExpenses")
+            const childNode = `<li id=${user.id}> <strong>${user.Categories}>>> </strong>${user.Number} <em>Bucks</em> (${user.Description})
+               <button style="background:rgba(186, 32, 32, 0.463); border: none"   onclick='deleteExpense(${user.id})'>X</button></li>`
+            parentNode.innerHTML = parentNode.innerHTML + childNode
+        
+        }
+      
+        
+        
+        function deleteExpense(userId){
+            axios.delete(`http://54.249.187.183:3000/users/delete-user/${userId}`)
+            removeExpenseFromScreen(userId);
+        }
+        function removeExpenseFromScreen(userId){
+            const parentNode = document.getElementById('NumberOfExpenses');
+            const childNodeToBeDeleted = document.getElementById(userId);
+
+            parentNode.removeChild(childNodeToBeDeleted);
+        }
+
+        
+
+
+
+ document.getElementById('rzp-button1').onclick =async function(e){ 
+const token =localStorage.getItem('token')
+
+const response= await axios.get('http://54.249.187.183:3000/purchase/premiumMembership', {headers: {"Authorization" : token }});
+console.log(response);
+
+var options = 
+{    
+
+"key": response.data.key_id,
+"order_id": response.data.order.id, 
+
+"handler" : async function(response){
+    const res = await axios.post('http://54.249.187.183:3000/purchase/updatetransactionstatus',{
+        order_id: options.order_id,
+        payment_id: response.razorpay_payment_id,
+    }, {headers : {"Authorization" : token}})
+    alert('You are a Premium User Now');
+    document.getElementById('rzp-button1').style.visibility='hidden'
+    document.getElementById('message').innerHTML = "<p style='text-align:center; color:red'><strong>PREMIUM USER</strong></p>"
+    localStorage.setItem('token', res.data.token)
+},
+};
+
+const rzp1 = new Razorpay(options);
+rzp1.open();
+e.preventDefault();
+
+rzp1.on('payment.failed', function(response){
+console.log(response)
+
+const res = axios.post('http://54.249.187.183:3000/purchase/updatetransactionstatus',{
+        order_id: options.order_id,
+        payment_id: response.razorpay_payment_id,
+    }, {headers : {"Authorization" : token}})
+alert("Something went Wrong!")
+
+});
+}
+
+ function getReport(event){
+   const reports = document.getElementById('Report')
+   window.location.href = '/reports.html'
+ }
+
+ function getLeaderBoard(event){
+   const reports = document.getElementById('Board')
+   window.location.href = '/leaderboard.html'
+ }
+
+ function parseJwt (token) {
+var base64Url = token.split('.')[1];
+var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+}).join(''));
+
+return JSON.parse(jsonPayload);
+}
+function showPagination({currentPage,hasNextPage,hasPreviousPage,nextPage,previousPage,lastPage}){
+    pagination.innerHTML ='';
+    Items_Per_Page = localStorage.getItem('itemsperpage')
+
+    if(hasPreviousPage){
+        const button1 = document.createElement('button');
+        button1.style.background = 'none'
+        button1.innerHTML = previousPage ;
+        console.log('----------------------------',button1.innerHTML)
+        button1.addEventListener('click' , ()=>getPageExpenses(previousPage,Items_Per_Page))
+        pagination.appendChild(button1)
+    }
+
+    const button2 = document.createElement('button');
+    button2.style.background = 'none'
+    button2.classList.add('active')
+    button2.innerHTML = currentPage ;
+    console.log('----------------------------',button2.innerHTML)
+    button2.addEventListener('click' , ()=>getPageExpenses(currentPage,Items_Per_Page))
+    pagination.appendChild(button2)
+
+    if(hasNextPage){
+        const button3 = document.createElement('button');
+        button3.style.background = 'none'
+        button3.innerHTML = nextPage ;
+        console.log('----------------------------',button3.innerHTML)
+        button3.addEventListener('click' , ()=>getPageExpenses(nextPage,Items_Per_Page))
+        pagination.appendChild(button3)
+    }
+
+    if( currentPage!=lastPage && nextPage!=lastPage && lastPage != 0){
+        
+        const button4 = document.createElement('button');
+        button4.style.background = 'none'
+        button4.innerHTML = lastPage ;
+        console.log('button----------------------------',button4.innerHTML)
+        button4.addEventListener('click' , ()=>getPageExpenses(lastPage,Items_Per_Page))
+        pagination.appendChild(button4)
+    }
+}
+function perPage(event){
+    let Items_Per_Page = +document.getElementById('perpage')
+    let page = 1;
+    event.preventDefault();
+    
+    console.log(Items_Per_Page);
+    localStorage.setItem('itemsperpage' , +event.target.Items_Per_Page.value )
+    console.log('Mypageeeee',Items_Per_Page)
+    getPageExpenses(Items_Per_Page, +event.target.Items_Per_Page.value);
+
+}
+
+async function getPageExpenses(page, Items_Per_Page){
+    const token = localStorage.getItem('token')
+    await axios.post(`http://54.249.187.183:3000/users/get-user/${page}`,{Items_Per_Page: Items_Per_Page},{ headers: {"Authorization" : token} })
+    .then((response)=>{
+        console.log("Expense details",response.data)
+        document.getElementById('NumberOfExpenses').innerHTML=''
+        response.data.data.forEach(data => {
+                DisplayOnScreen(data)
+            });
+            showPagination(response.data.info);   
+        
+        }) 
+    .catch((err)=>{
+        console.log(err)
+    })
+}
+
+ 
+
+
+
+    </script>
+   
+</body>
+</html>
